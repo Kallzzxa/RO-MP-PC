@@ -13,6 +13,9 @@
 
 #include <string>
 #include <vector>
+#include <cstdio>
+#include <cstdlib>
+#include <shlobj.h>
 
 namespace rompmod {
 namespace {
@@ -47,6 +50,64 @@ int g_active = -1;
 bool g_loading = false;
 char g_chat_input[129] = "";
 bool g_chat_open = false;  // input aktif (T untuk buka)
+
+// --- Favorit (simpan di %APPDATA%/RO-MP-PC/mod_favorites.txt, "ip:port") ---
+static std::string ModFavPath() {
+    char appdata[MAX_PATH] = "";
+    if (FAILED(SHGetFolderPathA(NULL, CSIDL_APPDATA, NULL, 0, appdata)))
+        return "";
+    return std::string(appdata) + "\\RO-MP-PC\\mod_favorites.txt";
+}
+static std::vector<BrowserServer> g_favs;
+
+static void LoadModFavs() {
+    g_favs.clear();
+    std::string p = ModFavPath();
+    if (p.empty()) return;
+    FILE* f = fopen(p.c_str(), "r");
+    if (!f) return;
+    char line[160];
+    while (fgets(line, sizeof(line), f)) {
+        std::string s = line;
+        while (!s.empty() && (s.back() == '\n' || s.back() == '\r'))
+            s.pop_back();
+        auto c = s.find(':');
+        if (c == std::string::npos) continue;
+        BrowserServer e;
+        e.ip = s.substr(0, c);
+        e.port = (uint16_t)atoi(s.substr(c + 1).c_str());
+        e.hostname = e.ip + ":" + std::to_string(e.port);
+        if (!e.ip.empty() && e.port) g_favs.push_back(e);
+    }
+    fclose(f);
+}
+
+static void SaveModFavs() {
+    std::string p = ModFavPath();
+    if (p.empty()) return;
+    FILE* f = fopen(p.c_str(), "w");
+    if (!f) return;
+    for (auto& e : g_favs) fprintf(f, "%s:%d\n", e.ip.c_str(), e.port);
+    fclose(f);
+}
+
+static bool IsModFav(const std::string& ip, uint16_t port) {
+    for (auto& e : g_favs)
+        if (e.ip == ip && e.port == port) return true;
+    return false;
+}
+
+static void ToggleModFav(const BrowserServer& s) {
+    for (auto it = g_favs.begin(); it != g_favs.end(); ++it) {
+        if (it->ip == s.ip && it->port == s.port) {
+            g_favs.erase(it);
+            SaveModFavs();
+            return;
+        }
+    }
+    g_favs.push_back(s);
+    SaveModFavs();
+}
 
 ImVec4 ChatCol(int c) {
     switch (c) {
@@ -100,7 +161,14 @@ void DrawBrowser() {
     ImGui::SameLine();
     if (ImGui::Button("Internet")) { g_tab = 1; RefreshNet(); }
     ImGui::SameLine();
-    if (ImGui::Button("Refresh") && !g_loading) {
+    if (ImGui::Button("Favorit")) {
+        g_tab = 2;
+        LoadModFavs();
+        g_servers = g_favs;
+        g_active = -1;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Refresh") && !g_loading && g_tab != 2) {
         if (g_tab == 0) RefreshLan(); else RefreshNet();
     }
     if (g_tab == 1) {
@@ -144,6 +212,16 @@ void DrawBrowser() {
             mod.pending_nick = g_nick;
             mod.want_connect = true;
             g_show_browser = false;
+        }
+        ImGui::SameLine();
+        bool fav = IsModFav(s.ip, s.port);
+        if (ImGui::Button(fav ? "Hapus Favorit" : "Tambah Favorit")) {
+            ToggleModFav(s);
+            if (g_tab == 2) {  // refresh tab favorit
+                LoadModFavs();
+                g_servers = g_favs;
+                g_active = -1;
+            }
         }
     }
 
