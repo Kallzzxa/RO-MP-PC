@@ -4,7 +4,6 @@
 #include "../app.h"
 
 #include "raylib.h"
-#define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
 #include <cstdio>
