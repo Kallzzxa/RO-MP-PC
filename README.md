@@ -1,87 +1,78 @@
 # RO-MP PC
 
-Standalone **PC client** untuk server [RO-MP](https://github.com/Kallzzxa/gta-reversed-android)
-(multiplayer ala SA-MP di atas GTA:SA Android). Tidak butuh file GTA:SA —
-langsung jalan di Windows & Linux.
+**RO-MP ala SA-MP untuk PC** — launcher + client mod, persis cara kerja SA-MP:
 
-Fitur v1:
+| File | Fungsi |
+|---|---|
+| `romp-setup.exe` | Installer (NSIS) — install ke Program Files, deteksi folder GTA:SA |
+| `romp.exe` | Launcher + server browser (kaya open.mp) |
+| `romp.dll` | Client mod — di-inject otomatis ke `gta_sa.exe` saat tekan PLAY |
 
-- **Server browser** — 3 cara tanpa bingung connect kemana:
-  - 📡 **LAN**: server di WiFi yang sama otomatis ketemu (beacon broadcast,
-    tanpa VPS/master)
-  - 🌐 **Internet**: daftar dari master server
-  - ⭐ **Favorit**: tersimpan lokal + connect manual `IP:port`
-- **Chat** penuh: kirim/terima pesan, command `/...` (server yang proses)
-- **Daftar pemain** + **radar 2D** posisi pemain
-- Nickname tersimpan otomatis
+Tidak butuh ASI loader. `romp.exe` meluncurkan GTA:SA dan meng-inject
+`romp.dll` sendiri (CreateRemoteThread + LoadLibrary, seperti samp.exe).
 
-## Build
+Butuh: **GTA:SA PC v1.0 US**.
 
-Butuh: CMake 3.16+, compiler C++17, Git. raylib + raygui diunduh otomatis
-saat build pertama (FetchContent).
+## Download (releases)
 
-**Linux:**
+Ambil `romp-setup.exe` dari [releases](../../releases) — install, buka
+RO-MP dari desktop, pilih server, tekan **PLAY di GTA**.
+
+## Build manual
+
+**Launcher** (`romp.exe`) — Windows & Linux:
 
 ```bash
-# dependency sistem (Debian/Ubuntu):
+# Linux:
 sudo apt install cmake g++ git libx11-dev libxrandr-dev libxinerama-dev \
     libxcursor-dev libxi-dev mesa-common-dev
-./build-linux.sh
-./build/romp-pc
+./build-linux.sh && ./build/romp
+```
+```bat
+:: Windows (x64 Native Tools):
+build-windows.bat
 ```
 
-**Windows** (dari "x64 Native Tools Command Prompt" VS 2022):
+**Mod** (`romp.dll`) — Windows 32-bit, MSVC:
 
 ```bat
+:: dari "x86 Native Tools Command Prompt" (HARUS 32-bit!)
+cd mod
 build-windows.bat
-build\Release\romp-pc.exe
+:: -> mod\build\out\Release\romp.dll (taruh di folder yang sama dengan romp.exe)
+```
+
+**Installer** (`romp-setup.exe`) — butuh NSIS 3.x + hasil build di atas:
+
+```bat
+cd installer
+build-installer.bat
 ```
 
 ## Cara pakai
 
-1. Nyalakan server RO-MP (`server.cfg` — `lan_discovery 1` default nyala).
-2. Buka RO-MP PC, isi nick, klik **Refresh** di tab **LAN** — server di
-   jaringan yang sama langsung muncul. Atau tab Internet (isi master),
-   Favorit, atau Direct `IP:port`.
-3. Klik server → **CONNECT**. Chat di kolom kanan, `T` fokus input,
-   `Enter` kirim. Command diawali `/` (mis. `/players`, `/help`).
+1. Buka `romp.exe` → server browser: **LAN** (otomatis, tanpa VPS),
+   **Internet** (master), **Favorit**, atau Direct `IP:port`.
+2. Pilih server → **PLAY di GTA** → GTA:SA terbuka + auto-connect.
+   (Tombol **CONNECT** = mode lite, chat saja tanpa game.)
+3. Di dalam game: **T** = chat, **Enter** = kirim, **F7** = browser.
 
-## Mau main beneran (3D)? → mod/
-
-Versi di atas itu lite client (tanpa game). Kalau mau main GTA beneran —
-jalan, lihat pemain lain sebagai karakter — pakai **`mod/`**: ASI mod
-untuk **GTA:SA PC 1.0 US**. Lihat [mod/README.md](mod/README.md).
-Status masih alpha (belum di-test in-game).
+Isi folder GTA:SA sekali di bagian bawah browser (atau otomatis
+terdeteksi / dari installer).
 
 ## Struktur
 
 ```
-src/
-  main.cpp            entry + state machine layar
-  app.h/.cpp          state global, path config per-OS
-  net/
-    romp_protocol.h   protokol RO-MP v1 (disalin dari repo utama)
-    pc_client.h/.cpp  TCP client: HELLO/WELCOME, chat, pemain, ping
-    pc_browser.h/.cpp server browser: LAN beacon, UDP query, master list
-  ui/
-    ui_browser.cpp    layar browser (raylib + raygui)
-    ui_game.cpp       layar game: chat + daftar pemain + radar
-tests/
-  test_net.cpp        test headless net core (tanpa GUI)
-```
-
-## Test
-
-```bash
-# butuh server + master test jalan (lihat repo utama):
-g++ -std=c++17 -I src tests/test_net.cpp src/net/pc_client.cpp \
-    src/net/pc_browser.cpp -o /tmp/test_net
-/tmp/test_net 127.0.0.1 17777
+src/           launcher romp.exe: browser + chat lite + PLAY (inject)
+  pc_launch.*  luncurkan gta_sa.exe + inject romp.dll (Windows)
+mod/           romp.dll: playable mod (D3D9 hook + ImGui + plugin-sdk)
+  src/         dllmain, net_worker, d3d9_hook, overlay, remote_peds
+installer/     romp-setup.nsi (NSIS) + build script
+tests/         test headless net core
 ```
 
 ## Catatan
 
-- NUI (WebView ala FiveM) belum dirender di PC — server yang membuka UI
-  memunculkan notifikasi di chat.
-- Protokol mengikuti `server/PROTOCOL.md` di repo utama. Kalau protokol
-  berubah, salin ulang `romp_protocol.h` dari sana.
+- Mod (`romp.dll`) masih **alpha** — belum di-test in-game.
+- NUI (WebView) belum dirender di PC.
+- Protokol mengikuti `server/PROTOCOL.md` di repo utama.

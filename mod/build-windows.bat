@@ -11,6 +11,7 @@ cmake -B build -G "Visual Studio 17 2022" -A Win32
 echo [3/3] Build...
 cmake --build build --config Release
 echo.
-echo OK -^> mod\build\out\Release\romp.asi
-echo Copy romp.asi ke folder GTA:SA (butuh ASI loader, mis. dinput8.dll).
+echo OK -^> mod\build\out\Release\romp.dll
+echo Copy romp.dll ke folder yang sama dengan romp.exe.
+echo (romp.exe otomatis inject ke GTA:SA saat tekan PLAY)
 pause

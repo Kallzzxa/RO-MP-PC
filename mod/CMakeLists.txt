@@ -91,7 +91,7 @@ target_compile_options(romp PRIVATE /W3 /EHsc /MP)
 
 set_target_properties(romp PROPERTIES
     OUTPUT_NAME "romp"
-    SUFFIX ".asi"
+    SUFFIX ".dll"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/out"
 )
 

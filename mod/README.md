@@ -1,10 +1,14 @@
-# RO-MP Playable Mod (ASI)
+# RO-MP Playable Mod (romp.dll)
 
 Mod **playable** untuk GTA:SA PC — main GTA beneran (jalan, lihat pemain
 lain, chat) sambil connect ke server RO-MP. Referensi arsitektur client:
 [FlexodMR/SA-MP](https://github.com/FlexodMR/SA-MP) (reverse SA-MP 0.3.7,
 dipakai sebagai acuan pola — implementasi di sini ditulis ulang untuk
 protokol RO-MP).
+
+**Tidak butuh ASI loader.** `romp.exe` (launcher) otomatis meng-inject
+`romp.dll` ke `gta_sa.exe` saat kamu tekan **PLAY** — persis cara kerja
+SA-MP (samp.exe + samp.dll).
 
 ## Status: ALPHA (belum di-test in-game)
 
@@ -15,7 +19,6 @@ dan akan di-fix. Jangan ekspektasi langsung sempurna.
 ## Syarat
 
 - **GTA:SA PC v1.0 US** (gta_sa.exe 1.0 — versi lain belum tentu cocok)
-- **ASI loader** (mis. dinput8.dll dari SilentPatch / SkyGfx)
 - **Visual Studio 2022** + workload "Desktop development with C++"
 
 ## Build
@@ -26,17 +29,17 @@ cd mod
 build-windows.bat
 ```
 
-Hasil: `mod\build\out\Release\romp.asi` → copy ke folder GTA:SA.
+Hasil: `mod\build\out\Release\romp.dll` → copy ke folder yang sama
+dengan `romp.exe`. Launcher akan inject otomatis.
 
 Pertama kali akan clone submodule (plugin-sdk, imgui, minhook) otomatis.
 
 ## Cara main
 
-1. Jalankan GTA:SA seperti biasa (single player).
-2. Tekan **F7** → server browser muncul.
-3. Isi nick → tab **LAN** → Refresh (atau Direct `IP:port`) → **CONNECT**.
-4. **T** = buka chat, **Enter** = kirim. Command diawali `/`.
-5. Pemain lain muncul sebagai ped + nametag hijau.
+1. Buka `romp.exe` → server browser (kaya open.mp).
+2. Pilih server → **PLAY di GTA**.
+3. GTA:SA terbuka, `romp.dll` ter-inject, auto-connect ke server.
+4. **T** = buka chat, **Enter** = kirim. **F7** = browser (ganti server).
 
 ## Cara kerja
 

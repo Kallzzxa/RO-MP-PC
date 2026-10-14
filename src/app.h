@@ -33,6 +33,8 @@ struct App {
     bool loading = false;
     std::string status = "Siap.";
     char direct_ip[128] = "";
+    char gta_path[260] = "";  // folder GTA:SA (Windows, untuk PLAY)
+    bool gta_path_known = false;
 
     // --- Game state ---
     std::vector<ChatLine> chat;

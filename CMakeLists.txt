@@ -25,10 +25,12 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(raygui)
 
-add_executable(romp-pc
+add_executable(romp
     src/main.cpp
     src/app.cpp
     src/app.h
+    src/pc_launch.cpp
+    src/pc_launch.h
     src/net/pc_client.cpp
     src/net/pc_client.h
     src/net/pc_browser.cpp
@@ -36,15 +38,16 @@ add_executable(romp-pc
     src/net/romp_protocol.h
     src/ui/ui_browser.cpp
     src/ui/ui_game.cpp
+    src/ui/raygui_impl.cpp
 )
-target_include_directories(romp-pc PRIVATE
+target_include_directories(romp PRIVATE
     ${raygui_SOURCE_DIR}/src
     src
 )
-target_link_libraries(romp-pc PRIVATE raylib)
+target_link_libraries(romp PRIVATE raylib)
 
 if (WIN32)
-    target_link_libraries(romp-pc PRIVATE ws2_32)
+    target_link_libraries(romp PRIVATE ws2_32)
 endif()
 
 # Headless test (tanpa GUI): build terpisah via tests/CMakeLists.txt

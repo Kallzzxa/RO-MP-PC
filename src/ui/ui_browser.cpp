@@ -3,6 +3,7 @@
 // Tab: LAN (beacon, tanpa VPS) | Internet (master) | Favorit | Direct.
 // ============================================================
 #include "../app.h"
+#include "pc_launch.h"
 
 #include "raylib.h"
 #include "raygui.h"
@@ -76,6 +77,25 @@ void BrowserEnter(App& app) {
             size_t l = strlen(app.nick);
             while (l && (app.nick[l-1] == '\n' || app.nick[l-1] == '\r'))
                 app.nick[--l] = 0;
+        }
+        fclose(f);
+    }
+    // Deteksi GTA:SA (Windows).
+    if (!app.gta_path_known) {
+        std::string gp = romppc::FindGtaSa();
+        if (!gp.empty()) {
+            strncpy(app.gta_path, gp.c_str(), sizeof(app.gta_path) - 1);
+            app.gta_path_known = true;
+        }
+    }
+    // Load path tersimpan.
+    f = fopen(ConfigPath("gta_path.txt"), "r");
+    if (f) {
+        if (fgets(app.gta_path, sizeof(app.gta_path), f)) {
+            size_t l = strlen(app.gta_path);
+            while (l && (app.gta_path[l-1] == '\n' || app.gta_path[l-1] == '\r'))
+                app.gta_path[--l] = 0;
+            if (app.gta_path[0]) app.gta_path_known = true;
         }
         fclose(f);
     }
@@ -231,17 +251,33 @@ void DrawBrowser(App& app) {
             ToggleFav(favs, s);
             if (app.brow_tab == 2) app.srv_active = -1;
         }
-        // Connect.
-        if (GuiButton({20, (float)H - 44, 200, 32}, "CONNECT") && !app.loading)
+        // Connect (lite) + PLAY (GTA:SA).
+        if (GuiButton({20, (float)H - 44, 140, 32}, "CONNECT") && !app.loading)
             BrowserConnect(app, s.ip, s.port);
+#ifdef _WIN32
+        if (GuiButton({170, (float)H - 44, 140, 32}, "PLAY di GTA") &&
+            !app.loading) {
+            std::string nick = app.nick[0] ? app.nick : "Player";
+            if (!app.gta_path_known || !app.gta_path[0]) {
+                app.status = "Folder GTA:SA belum di-set. Isi di bawah.";
+            } else {
+                app.status = "Meluncurkan GTA:SA...";
+                std::string err = romppc::LaunchGtaWithMod(
+                    app.gta_path, s.ip, s.port, nick);
+                app.status = err.empty()
+                    ? "GTA:SA diluncurkan! (F7 di dalam game = browser)"
+                    : ("Gagal: " + err);
+            }
+        }
+#endif
     }
 
     // Direct connect.
-    GuiLabel({240, (float)H - 44, 90, 32}, "Direct IP:");
+    GuiLabel({330, (float)H - 44, 90, 32}, "Direct IP:");
     static bool dipEdit = false;
-    if (GuiTextBox({330, (float)H - 44, 220, 32}, app.direct_ip, 127, dipEdit))
+    if (GuiTextBox({420, (float)H - 44, 200, 32}, app.direct_ip, 127, dipEdit))
         dipEdit = !dipEdit;
-    if (GuiButton({560, (float)H - 44, 110, 32}, "Connect")) {
+    if (GuiButton({630, (float)H - 44, 100, 32}, "Connect")) {
         std::string v = app.direct_ip;
         auto c = v.find(':');
         if (c != std::string::npos) {
@@ -254,6 +290,32 @@ void DrawBrowser(App& app) {
 
     // Status bar.
     DrawText(app.status.c_str(), 20, H - 20, 13, {120, 120, 120, 255});
+
+#ifdef _WIN32
+    // Folder GTA:SA (untuk PLAY).
+    GuiLabel({20, (float)H - 78, 110, 28}, "Folder GTA:SA:");
+    static bool gtaEdit = false;
+    if (GuiTextBox({130, (float)H - 78, 420, 28}, app.gta_path, 259, gtaEdit))
+        gtaEdit = !gtaEdit;
+    if (GuiButton({560, (float)H - 78, 90, 28}, "Simpan")) {
+        romppc::SaveGtaPath(app.gta_path);
+        FILE* f = fopen(ConfigPath("gta_path.txt"), "w");
+        if (f) { fprintf(f, "%s\n", app.gta_path); fclose(f); }
+        app.gta_path_known = app.gta_path[0] != 0;
+        app.status = app.gta_path_known ? "Folder GTA:SA disimpan."
+                                        : "Folder kosong.";
+    }
+    if (GuiButton({660, (float)H - 78, 90, 28}, "Deteksi")) {
+        std::string gp = romppc::FindGtaSa();
+        if (!gp.empty()) {
+            strncpy(app.gta_path, gp.c_str(), sizeof(app.gta_path) - 1);
+            app.gta_path_known = true;
+            app.status = "GTA:SA ditemukan: " + gp;
+        } else {
+            app.status = "GTA:SA tidak ditemukan otomatis. Isi manual.";
+        }
+    }
+#endif
 }
 
 }  // namespace romppc
