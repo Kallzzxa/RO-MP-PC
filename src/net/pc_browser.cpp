@@ -13,7 +13,11 @@
   typedef SOCKET sock_t;
   #define BAD_SOCK INVALID_SOCKET
   #define CLOSE_SOCK(s) closesocket(s)
-  typedef int ssize_t;
+  #ifdef __MINGW32__
+    #include <sys/types.h>  // ssize_t sudah ada
+  #else
+    typedef int ssize_t;    // MSVC tidak punya ssize_t
+  #endif
   static bool net_init() {
       WSADATA w; return WSAStartup(MAKEWORD(2, 2), &w) == 0;
   }
