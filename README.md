@@ -46,6 +46,13 @@ build\Release\romp-pc.exe
 3. Klik server → **CONNECT**. Chat di kolom kanan, `T` fokus input,
    `Enter` kirim. Command diawali `/` (mis. `/players`, `/help`).
 
+## Mau main beneran (3D)? → mod/
+
+Versi di atas itu lite client (tanpa game). Kalau mau main GTA beneran —
+jalan, lihat pemain lain sebagai karakter — pakai **`mod/`**: ASI mod
+untuk **GTA:SA PC 1.0 US**. Lihat [mod/README.md](mod/README.md).
+Status masih alpha (belum di-test in-game).
+
 ## Struktur
 
 ```
