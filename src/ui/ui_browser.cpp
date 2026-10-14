@@ -93,7 +93,7 @@ static void RefreshAsync(App& app, std::vector<BrowserServer> favs) {
         std::vector<BrowserServer> out;
         std::string st;
         if (tab == 0) {
-            BrowserListenLan(out, 3000);
+            BrowserListenLan(out, 6000);
             st = out.empty()
                 ? "Tidak ada server di LAN. Cek WiFi & lan_discovery server."
                 : std::to_string(out.size()) + " server ditemukan di LAN.";
